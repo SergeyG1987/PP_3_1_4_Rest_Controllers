@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void save(User user) {
-        // Роли уже пришли с фронта с правильными ID, просто сохраняем
+        
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
-        // Роли уже пришли с фронта, просто устанавливаем
+        
         existingUser.setRoles(updatedUser.getRoles());
 
         userRepository.save(existingUser);
