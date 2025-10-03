@@ -42,7 +42,7 @@ public class AdminRestController {
             return ResponseEntity.badRequest().body("User with this email already exists");
         }
 
-        // Роли уже пришли с правильными ID, просто сохраняем
+        
         userService.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
@@ -59,7 +59,7 @@ public class AdminRestController {
             return ResponseEntity.badRequest().body("User with this email already exists");
         }
 
-        // Роли уже пришли с фронта, просто обновляем
+        
         userService.update(id, user);
         return ResponseEntity.ok(user);
     }
