@@ -4,7 +4,6 @@ import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
 import ru.kata.spring.boot_security.demo.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -13,18 +12,21 @@ import java.util.Set;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final RoleService roleService;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    public DataInitializer(UserRepository userRepository,
+                           RoleService roleService,
+                           BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
-    public void run(String... args) throws Exception {
-
+    public void run(String... args) {
+        // Создаем роли, если их нет
         Role adminRole = roleService.findByName("ROLE_ADMIN");
         if (adminRole == null) {
             adminRole = new Role("ROLE_ADMIN");
@@ -37,11 +39,11 @@ public class DataInitializer implements CommandLineRunner {
             roleService.save(userRole);
         }
 
-
+        // Получаем роли из базы (с ID)
         adminRole = roleService.findByName("ROLE_ADMIN");
         userRole = roleService.findByName("ROLE_USER");
 
-
+        // Создаем админа
         if (userRepository.findByEmail("admin@mail.ru").isEmpty()) {
             User admin = new User();
             admin.setFirstName("Admin");
@@ -54,7 +56,7 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("Created admin user: admin@mail.ru / admin");
         }
 
-
+        // Создаем обычного пользователя
         if (userRepository.findByEmail("user@mail.ru").isEmpty()) {
             User user = new User();
             user.setFirstName("User");

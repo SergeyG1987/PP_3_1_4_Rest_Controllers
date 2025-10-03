@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Add new user</title>
@@ -153,7 +153,7 @@
                 }
                 return response.json();
             })
-            .then(user => {
+            .then(() => {
                 showAlert('User created successfully! Redirecting to users list...', 'success');
                 setTimeout(() => {
                     window.location.href = '/admin/users';
@@ -169,7 +169,7 @@
         const selectedRoles = [];
         document.querySelectorAll('.role-checkbox:checked').forEach(checkbox => {
             const roleId = checkbox.value;
-            const role = allRoles.find(r => r.id == roleId);
+            const role = allRoles.find(r => r.id === parseInt(roleId));
             if (role) {
                 selectedRoles.push(role);
             }
@@ -232,11 +232,11 @@
     }
 
     function showAlert(message, type) {
-        const alertHtml = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>`;
-        document.getElementById('alertContainer').innerHTML = alertHtml;
+        document.getElementById('alertContainer').innerHTML =
+            `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
     }
 </script>
 </body>

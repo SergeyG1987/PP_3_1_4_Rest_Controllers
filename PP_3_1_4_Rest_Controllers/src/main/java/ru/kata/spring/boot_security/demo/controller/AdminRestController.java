@@ -1,29 +1,24 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
 public class AdminRestController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private RoleService roleService;
+    public AdminRestController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -47,17 +42,7 @@ public class AdminRestController {
             return ResponseEntity.badRequest().body("User with this email already exists");
         }
 
-        // Обрабатываем роли - убеждаемся, что они существуют в базе
-        if (user.getRoles() != null) {
-            Set<Role> managedRoles = user.getRoles().stream()
-                    .map(role -> {
-                        Role existingRole = roleService.findByName(role.getName());
-                        return existingRole != null ? existingRole : role;
-                    })
-                    .collect(Collectors.toSet());
-            user.setRoles(managedRoles);
-        }
-
+        // Роли уже пришли с правильными ID, просто сохраняем
         userService.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
@@ -68,23 +53,13 @@ public class AdminRestController {
             return ResponseEntity.badRequest().body("Validation error");
         }
 
-        // Проверка что email не занят другим пользователем
+        // Проверка, что email не занят другим пользователем
         User existingUser = userService.findByEmail(user.getEmail());
         if (existingUser != null && !existingUser.getId().equals(id)) {
             return ResponseEntity.badRequest().body("User with this email already exists");
         }
 
-        // Обрабатываем роли
-        if (user.getRoles() != null) {
-            Set<Role> managedRoles = user.getRoles().stream()
-                    .map(role -> {
-                        Role existingRole = roleService.findByName(role.getName());
-                        return existingRole != null ? existingRole : role;
-                    })
-                    .collect(Collectors.toSet());
-            user.setRoles(managedRoles);
-        }
-
+        // Роли уже пришли с фронта, просто обновляем
         userService.update(id, user);
         return ResponseEntity.ok(user);
     }

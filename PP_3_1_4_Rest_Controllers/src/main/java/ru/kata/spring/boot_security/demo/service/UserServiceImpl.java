@@ -1,9 +1,7 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,36 +13,25 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-    @Autowired
-    private RoleService roleService;
+    public UserServiceImpl(UserRepository userRepository,
+                           BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
-        return user;
     }
 
     @Override
     @Transactional
     public void save(User user) {
-
-        if (user.getRoles() != null) {
-            user.getRoles().forEach(role -> {
-                Role existingRole = roleService.findByName(role.getName());
-                if (existingRole != null) {
-                    role.setId(existingRole.getId());
-                } else {
-                    roleService.save(role);
-                }
-            });
-        }
+        // Роли уже пришли с фронта с правильными ID, просто сохраняем
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
@@ -80,16 +67,8 @@ public class UserServiceImpl implements UserService {
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
-        // Обработка ролей
-        if (updatedUser.getRoles() != null) {
-            updatedUser.getRoles().forEach(role -> {
-                Role existingRole = roleService.findByName(role.getName());
-                if (existingRole != null) {
-                    role.setId(existingRole.getId());
-                }
-            });
-            existingUser.setRoles(updatedUser.getRoles());
-        }
+        // Роли уже пришли с фронта, просто устанавливаем
+        existingUser.setRoles(updatedUser.getRoles());
 
         userRepository.save(existingUser);
     }
