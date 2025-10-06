@@ -52,26 +52,23 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
-    @Override
-    @Transactional
-    public void update(Long id, User updatedUser) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        existingUser.setFirstName(updatedUser.getFirstName());
-        existingUser.setLastName(updatedUser.getLastName());
-        existingUser.setAge(updatedUser.getAge());
-        existingUser.setEmail(updatedUser.getEmail());
-
-        if (updatedUser.getPassword() != null && !updatedUser.getPassword().trim().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+@Override
+@Transactional
+public void update(Long id, User user) {
+    // Если пароль не указан (оставлен пустым), берем старый пароль из БД
+    if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+        User existingUser = userRepository.findById(id).orElse(null);
+        if (existingUser != null) {
+            user.setPassword(existingUser.getPassword());
         }
-
-        
-        existingUser.setRoles(updatedUser.getRoles());
-
-        userRepository.save(existingUser);
+    } else {
+        // Шифруем новый пароль
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
     }
+    // Устанавливаем ID для обновления существующей записи
+    user.setId(id);
+    userRepository.save(user);
+}
 
     @Override
     public User findByEmail(String email) {
